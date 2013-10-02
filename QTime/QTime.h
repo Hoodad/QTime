@@ -19,6 +19,7 @@
 ///
 /// Created on: 01-10-2013
 /// Created by Robin Thunstroem
+/// Version 1.1
 ///--------------------------------------------------------------------------------------
 
 
@@ -38,6 +39,7 @@ private:
 	static __int64 previousTimeStamp;
 
 	static float deltaTime;
+	static float externalDeltaTime;
 
 	static float timeScale;
 	static bool isPaused;
@@ -46,7 +48,11 @@ public:
 	static void Init();
 	
 	// Will have to be called every TICK to update the delta time and other variables.
+	// It should always be called no matter if the internal timer has been paused or not.
 	static void Update();
+
+	// Primarily used for testing purposes
+	static void Reset();
 
 	// Pauses only the internal time
 	static void PauseInteralTime( const bool p_value);
@@ -60,6 +66,9 @@ public:
 
 	// Gets the delta time calculated at the last call to the Update function
 	static float GetDT();
+
+	// Gets unaffected delta time
+	static float GetExternalDT();
 
 	// Can be used to scale how fast time is perceived by the internal time
 	static void SetInternalTimeScale(const float p_value);
@@ -76,4 +85,10 @@ public:
 	static __int64 SecondsToCycles( float p_seconds);
 private:
 	static void QueryPerformance(__int64 *p_value);
+
+	static void HandleExternalTimeUpdate(__int64& p_cyclesSinceLastFrame);
+
+	static void HandleInternalTimeUpdate(__int64& p_cyclesSinceLastFrame);
+
+	static void CorrectDeltaTime(float& p_value);
 };

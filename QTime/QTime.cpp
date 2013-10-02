@@ -1,5 +1,4 @@
 #include "QTime.h"
-#include "Helper.h"
 #include <windows.h>
 
 // Set at compile time and never changed during runtime
@@ -11,6 +10,7 @@ __int64 QTime::externalTime = 0;
 __int64 QTime::internalTime = 0;
 __int64 QTime::previousTimeStamp = 0;
 float QTime::deltaTime = 0.0f;
+float QTime::externalDeltaTime = 0.0f;
 float QTime::timeScale = 1.0f;
 bool QTime::isPaused = false;
 
@@ -24,26 +24,28 @@ void QTime::Update( )
 {
 	__int64 cyclesSinceLastFrame;
 	__int64 currentTimeStamp;
+	deltaTime = 0;
 
 	QueryPerformance(&currentTimeStamp);
 	cyclesSinceLastFrame = currentTimeStamp - previousTimeStamp;
 	previousTimeStamp = currentTimeStamp;
 
-	externalTime += cyclesSinceLastFrame;
+	HandleExternalTimeUpdate(cyclesSinceLastFrame);
 
-	if(IsInternalTimePaused()){
-		deltaTime = 0;
+	if(IsInternalTimePaused() == false){
+		HandleInternalTimeUpdate(cyclesSinceLastFrame);
 	}
-	else{
-		internalTime += cyclesSinceLastFrame;
-		deltaTime = (
-			static_cast<float>(cyclesSinceLastFrame) / static_cast<float>(cyclesPerSec)
-			) * timeScale;
+}
 
-		if(deltaTime > MAXIMUM_DELTA_TIME){
-			deltaTime = DEFAULT_EXCEEDED_DELTA_MAX;
-		}
-	}
+void QTime::Reset(){
+	cyclesPerSec = 0;
+	externalTime = 0;
+	internalTime = 0;
+	previousTimeStamp = 0;
+	deltaTime = 0.0f;
+	externalDeltaTime = 0.0f;
+	timeScale = 1.0f;
+	isPaused = false;
 }
 
 void QTime::PauseInteralTime(const bool p_value){
@@ -61,6 +63,10 @@ __int64 QTime::GetInternalTime()
 
 float QTime::GetDT() {
 	return deltaTime;
+}
+
+float QTime::GetExternalDT(){
+	return externalDeltaTime;
 }
 
 void QTime::SetInternalTimeScale( const float p_value )
@@ -85,4 +91,30 @@ __int64 QTime::SecondsToCycles( float p_seconds )
 
 void QTime::QueryPerformance( __int64 *p_value ){
 	QueryPerformanceCounter((LARGE_INTEGER*) p_value);
+}
+
+void QTime::HandleExternalTimeUpdate(__int64& p_cyclesSinceLastFrame){
+	externalTime += p_cyclesSinceLastFrame;
+	externalDeltaTime = (static_cast<float>(p_cyclesSinceLastFrame) / 
+		static_cast<float>(cyclesPerSec));
+
+	CorrectDeltaTime(externalDeltaTime);
+}
+
+void QTime::HandleInternalTimeUpdate(__int64& p_cyclesSinceLastFrame){
+	internalTime += 
+		static_cast<__int64>(static_cast<float>(p_cyclesSinceLastFrame) * timeScale);
+
+	deltaTime = ( static_cast<float>(p_cyclesSinceLastFrame) / 
+		static_cast<float>(cyclesPerSec) 
+		) * timeScale;
+
+	CorrectDeltaTime(deltaTime);
+}
+
+void QTime::CorrectDeltaTime( float& p_value )
+{
+	if(p_value > MAXIMUM_DELTA_TIME){
+		p_value = DEFAULT_EXCEEDED_DELTA_MAX;
+	}
 }
