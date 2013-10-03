@@ -19,7 +19,7 @@
 ///
 /// Created on: 01-10-2013
 /// Created by Robin Thunstroem
-/// Version 1.1
+/// Version 1.2
 ///--------------------------------------------------------------------------------------
 
 
@@ -76,6 +76,10 @@ public:
 	// Will only return true if the PauseSystemTime has been set to true
 	static bool IsInternalTimePaused();
 
+	// Will single step to next frame by a predefined time step. Requires the internal 
+	// time to be paused.
+	static void StepOneFrameInternalTime();
+
 	// Help function that can calculate from CPU cycles how long that would be in seconds
 	// CAUTION! Should only be used to calculate smaller time differences due to floats
 	// lack of precision as the values increases.
@@ -83,6 +87,8 @@ public:
 
 	// Help function that converts seconds to cycles.
 	static __int64 SecondsToCycles( float p_seconds);
+
+	static float GetDEFAULT_EXCEEDED_DELTA_MAX();
 private:
 	static void QueryPerformance(__int64 *p_value);
 

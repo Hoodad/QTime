@@ -3,7 +3,7 @@
 
 // Set at compile time and never changed during runtime
 float QTime::MAXIMUM_DELTA_TIME = 1.0f;
-float QTime::DEFAULT_EXCEEDED_DELTA_MAX = 1.0f/60.0f;
+float QTime::DEFAULT_EXCEEDED_DELTA_MAX = 0.01666666f;
 
 __int64 QTime::cyclesPerSec = 0;
 __int64 QTime::externalTime = 0;
@@ -79,6 +79,14 @@ bool QTime::IsInternalTimePaused()
 	return isPaused;
 }
 
+void QTime::StepOneFrameInternalTime()
+{
+	if(IsInternalTimePaused()){
+		__int64 cycles = SecondsToCycles(DEFAULT_EXCEEDED_DELTA_MAX);
+		HandleInternalTimeUpdate(cycles);
+	}
+}
+
 float QTime::CyclesToSeconds( __int64 p_cycles )
 {
 	return static_cast<float>(p_cycles) / static_cast<float>(cyclesPerSec);
@@ -117,4 +125,9 @@ void QTime::CorrectDeltaTime( float& p_value )
 	if(p_value > MAXIMUM_DELTA_TIME){
 		p_value = DEFAULT_EXCEEDED_DELTA_MAX;
 	}
+}
+
+float QTime::GetDEFAULT_EXCEEDED_DELTA_MAX()
+{
+	return DEFAULT_EXCEEDED_DELTA_MAX;
 }

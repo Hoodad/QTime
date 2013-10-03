@@ -52,6 +52,14 @@ Describe(A_test_of_time){
 			Assert::That( QTime::GetInternalTime(), Equals(internalTime) );
 			Assert::That( QTime::GetExternalTime(), !Equals(QTime::GetInternalTime()) );
 		}
+		
+		It(Single_step_time){
+			QTime::PauseInteralTime(true);
+			QTime::StepOneFrameInternalTime();
+			float deltaTime = QTime::GetDT();
+			float difference = deltaTime - QTime::GetDEFAULT_EXCEEDED_DELTA_MAX();
+			Assert::That( difference, IsLessThan(0.000001f));
+		}
 	};
 };
 
